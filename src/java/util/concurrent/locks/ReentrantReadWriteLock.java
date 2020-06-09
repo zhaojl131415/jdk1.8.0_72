@@ -329,7 +329,9 @@ public class ReentrantReadWriteLock
          * <p>Accessed via a benign data race; relies on the memory
          * model's final field and out-of-thin-air guarantees.
          *
-         * 记录对应读锁线程的加锁次数 和 线程id
+         * 记录最近一次对应读锁线程的加锁次数 和 线程id,
+         * 存在的意义: 因为效率优化问题, 让锁重入的时候更快的获取加锁次数, 而不用去Map拿数据
+         * 实际开发过程中, 重入锁一般都是同一个线程连续的, 所以缓存起来, 不用去Map拿数据
          */
         private transient HoldCounter cachedHoldCounter;
 
@@ -351,6 +353,8 @@ public class ReentrantReadWriteLock
          * <p>This allows tracking of read holds for uncontended read
          * locks to be very cheap.
          */
+        // 为什么要记录第一个, 而不像其他线程一样存入ThreadLocalHoldCounter?
+        // 因为效率问题, 用变量存储效率高于ThreadLocalHoldCounter的Map方式, Map毕竟还需要hash计算, 才能找到对应的value, 而通过变量不需要直接获取, 更快
         // 存储第一个加锁的线程
         private transient Thread firstReader = null;
         // 存储第一个加锁的线程重入次数
@@ -457,22 +461,29 @@ public class ReentrantReadWriteLock
         // 读锁: 释放锁
         protected final boolean tryReleaseShared(int unused) {
             Thread current = Thread.currentThread();
+            // 如果当前线程为第一个加读锁的线程
             if (firstReader == current) {
                 // assert firstReaderHoldCount > 0;
+                // 对第一个加读锁的线程的计数器递减1, 如果只剩1了置为null
                 if (firstReaderHoldCount == 1)
                     firstReader = null;
                 else
                     firstReaderHoldCount--;
             } else {
+                // 如果不是第一个加读锁的线程, 获取最后一个加读锁的线程
                 HoldCounter rh = cachedHoldCounter;
                 if (rh == null || rh.tid != getThreadId(current))
                     rh = readHolds.get();
+                // 获取当前线程对应的重入次数
                 int count = rh.count;
+                // 如果次数小于 <= 1
                 if (count <= 1) {
+                    // 彻底解锁, 从ThreadLocalHoldCounter中移除
                     readHolds.remove();
                     if (count <= 0)
                         throw unmatchedUnlockException();
                 }
+                // 次数递减1
                 --rh.count;
             }
             for (;;) {
