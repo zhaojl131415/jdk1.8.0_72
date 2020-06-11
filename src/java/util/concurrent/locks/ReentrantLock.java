@@ -235,6 +235,9 @@ public class ReentrantLock implements Lock, java.io.Serializable {
 
         final void lock() {
             // 加锁
+            /**
+             * @see AbstractQueuedSynchronizer#acquire(int)
+             */
             acquire(1);
         }
 
@@ -479,6 +482,9 @@ public class ReentrantLock implements Lock, java.io.Serializable {
      *         hold this lock
      */
     public void unlock() {
+        /**
+         * @see AbstractQueuedSynchronizer#release(int)
+         */
         sync.release(1);
     }
 

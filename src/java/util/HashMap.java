@@ -248,6 +248,10 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /**
      * The load factor used when none specified in constructor.
      * 默认加载因子, 跟扩容有关系
+     *
+     * 这个也是在时间和空间上权衡的结果。
+     * 如果值较高，例如1，此时会减少空间开销，但是 hash 冲突的概率会增大，增加查找成本；
+     * 而如果值较低，例如 0.5 ，此时 hash 冲突会降低，但是有一半的空间会被浪费，所以折衷考虑 0.75 似乎是一个合理的值。
      */
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
@@ -259,6 +263,10 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * tree removal about conversion back to plain bins upon
      * shrinkage.
      * 从链表转成红黑树的阈值
+     *
+     * 在时间和空间上权衡的结果
+     * 红黑树节点大小约为链表节点的2倍，在节点太少时，红黑树的查找性能优势并不明显，付出2倍空间的代价作者觉得不值得。
+     * 理想情况下，使用随机的哈希码，节点分布在 hash 桶中的频率遵循泊松分布，按照泊松分布的公式计算，链表中节点个数为8时的概率为 0.00000006（跟大乐透一等奖差不多，中大乐透？不存在的），这个概率足够低了，并且到8个节点时，红黑树的性能优势也会开始展现出来，因此8是一个较合理的数字。
      */
     static final int TREEIFY_THRESHOLD = 8;
 
@@ -267,6 +275,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * resize operation. Should be less than TREEIFY_THRESHOLD, and at
      * most 6 to mesh with shrinkage detection under removal.
      * 从红黑树转回链表的阈值
+     *
+     * 那为什么转回链表节点是用的6而不是复用8？
+     * 如果我们设置节点多于8个转红黑树，少于8个就马上转链表，当节点个数在8徘徊时，就会频繁进行红黑树和链表的转换，造成性能的损耗。
      */
     static final int UNTREEIFY_THRESHOLD = 6;
 
