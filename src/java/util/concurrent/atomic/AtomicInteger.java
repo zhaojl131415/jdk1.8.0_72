@@ -54,17 +54,19 @@ import sun.misc.Unsafe;
 public class AtomicInteger extends Number implements java.io.Serializable {
     private static final long serialVersionUID = 6214790243416807050L;
 
-    // setup to use Unsafe.compareAndSwapInt for updates
+    // setup to use Unsafe.compareAndSwapInt for updates (更新操作时提供“比较并替换”的作用)
     private static final Unsafe unsafe = Unsafe.getUnsafe();
     private static final long valueOffset;
 
     static {
         try {
+            // 本地方法，这个方法是用来拿到 “原来的值(value)” 的内存地址，返回值是 valueOffset。
             valueOffset = unsafe.objectFieldOffset
                 (AtomicInteger.class.getDeclaredField("value"));
         } catch (Exception ex) { throw new Error(ex); }
     }
 
+    // 在内存中可见， 因此 JVM 可以保证任何时刻任何线程总能拿到该变量的最新值。
     private volatile int value;
 
     /**
@@ -84,7 +86,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 
     /**
      * Gets the current value.
-     *
+     * 获取当前的值
      * @return the current value
      */
     public final int get() {
@@ -102,7 +104,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 
     /**
      * Eventually sets to the given value.
-     *
+     * 最终设置为 newValue,使用 lazySet 设置之后可能导致其他线程在之后的一小段时 间内还是可以读到旧的值。
      * @param newValue the new value
      * @since 1.6
      */
@@ -112,7 +114,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 
     /**
      * Atomically sets to the given value and returns the old value.
-     *
+     * 获取当前的值，并设置新的值
      * @param newValue the new value
      * @return the previous value
      */
@@ -123,6 +125,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     /**
      * Atomically sets the value to the given updated value
      * if the current value {@code ==} the expected value.
+     * 如果输入的数值等于预期值，则以原子方式将该值设置为输入值(update)
      *
      * @param expect the expected value
      * @param update the new value
@@ -151,7 +154,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 
     /**
      * Atomically increments by one the current value.
-     *
+     * 获取当前的值，并自增
      * @return the previous value
      */
     public final int getAndIncrement() {
@@ -160,7 +163,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 
     /**
      * Atomically decrements by one the current value.
-     *
+     * 获取当前的值，并自减
      * @return the previous value
      */
     public final int getAndDecrement() {
@@ -169,7 +172,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 
     /**
      * Atomically adds the given value to the current value.
-     *
+     * 获取当前的值，并加上预期的值
      * @param delta the value to add
      * @return the previous value
      */

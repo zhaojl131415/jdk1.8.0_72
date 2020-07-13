@@ -71,34 +71,36 @@ package java.lang.annotation;
  * @jls 4.1 The Kinds of Types and Values
  */
 public enum ElementType {
-    /** Class, interface (including annotation type), or enum declaration */
+    /** Class, interface (including annotation type), or enum declaration 类/接口/枚举 */
     TYPE,
 
-    /** Field declaration (includes enum constants) */
+    /** Field declaration (includes enum constants) 字段 */
     FIELD,
 
-    /** Method declaration */
+    /** Method declaration 方法 */
     METHOD,
 
-    /** Formal parameter declaration */
+    /** Formal parameter declaration 参数 */
     PARAMETER,
 
-    /** Constructor declaration */
+    /** Constructor declaration 构造方法 */
     CONSTRUCTOR,
 
-    /** Local variable declaration */
+    /** Local variable declaration 本地变量 */
     LOCAL_VARIABLE,
 
-    /** Annotation type declaration */
+    /** Annotation type declaration 注解类型 */
     ANNOTATION_TYPE,
 
-    /** Package declaration */
+    /** Package declaration 包 */
     PACKAGE,
 
     /**
      * Type parameter declaration
      *
      * @since 1.8
+     *
+     * 类型参数声明
      */
     TYPE_PARAMETER,
 
@@ -106,6 +108,8 @@ public enum ElementType {
      * Use of a type
      *
      * @since 1.8
+     *
+     * 使用类型
      */
     TYPE_USE
 }

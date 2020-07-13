@@ -374,6 +374,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * that workerCount is 0 (which sometimes entails a recheck -- see
      * below).
      */
+    // 存放线程池的运行状态 (runState) 和线程池内有效线程的数量 (workerCount)
     private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
     private static final int COUNT_BITS = Integer.SIZE - 3;
     private static final int CAPACITY   = (1 << COUNT_BITS) - 1;
@@ -1139,6 +1140,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                     beforeExecute(wt, task);
                     Throwable thrown = null;
                     try {
+                        // 直接通过 task.run() 来执行具体的任务
                         task.run();
                     } catch (RuntimeException x) {
                         thrown = x; throw x;
@@ -1330,6 +1332,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * @throws NullPointerException if {@code command} is null
      */
     public void execute(Runnable command) {
+        // 如果传入的Runnable任务为 null，则抛出异常。
         if (command == null)
             throw new NullPointerException();
         /*
@@ -1352,19 +1355,29 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
          * thread.  If it fails, we know we are shut down or saturated
          * and so reject the task.
          */
+        // ctl 中保存的线程池当前的一些状态信息
         int c = ctl.get();
+        // 下面会涉及到3步操作
+        // 1.首先判断当前线程池中之行的 任务数量 是否小于 corePoolSize
+        // 如果小于的话，通过 addWorker(command, true)新建一个线程，并将任务(command)添加到该线程中; 然后，启动该线程从而执行任务。
         if (workerCountOf(c) < corePoolSize) {
             if (addWorker(command, true))
                 return;
             c = ctl.get();
         }
+        // 2.如果当前之行的任务数量大于等于 corePoolSize 的时候就会走到这里
+        // 通过 isRunning 方法判断线程池状态，线程池处于 RUNNING 状态才会被并且队列可以加入任务，该任务才会被加入进去
         if (isRunning(c) && workQueue.offer(command)) {
             int recheck = ctl.get();
+            // 再次获取线程池状态，如果线程池状态不是 RUNNING 状态就需要从任务队列中移除任务，并尝试判断线程是否全部执行完毕。同时执行拒绝策略。
             if (! isRunning(recheck) && remove(command))
                 reject(command);
+            // 如果当前线程池为空就新创建一个线程并执行。
             else if (workerCountOf(recheck) == 0)
                 addWorker(null, false);
         }
+        //3. 通过 addWorker(command, false)新建一个线程，并将任务(command)添加到该线程中;然后，启动该线程从而执行任务。
+        //如果 addWorker(command, false)执行失败，则通过 reject()执行相应的拒绝策略的内容。
         else if (!addWorker(command, false))
             reject(command);
     }
