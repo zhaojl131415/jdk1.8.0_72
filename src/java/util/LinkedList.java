@@ -121,6 +121,7 @@ public class LinkedList<E>
 
     /**
      * Links e as first element.
+     * 作为链表的第一个元素
      */
     private void linkFirst(E e) {
         final Node<E> f = first;
@@ -136,14 +137,21 @@ public class LinkedList<E>
 
     /**
      * Links e as last element.
+     * 作为链表的最后一个元素
      */
     void linkLast(E e) {
+        // 获取尾节点
         final Node<E> l = last;
+        // 实例化一个新节点, 设置原尾节点为此节点的prev节点
         final Node<E> newNode = new Node<>(l, e, null);
+        // 将新创建的节点设为尾节点
         last = newNode;
+        // 如果原尾节点为null, 表示没有尾节点, 当前节点为第一个加入连接的节点.
         if (l == null)
+            // 将当前节点设置为头节点
             first = newNode;
         else
+            // 否则将原尾节点的next节点指向当前节点
             l.next = newNode;
         size++;
         modCount++;
@@ -151,15 +159,23 @@ public class LinkedList<E>
 
     /**
      * Inserts element e before non-null Node succ.
+     *
+     * 在指定节点前插入
      */
     void linkBefore(E e, Node<E> succ) {
         // assert succ != null;
+        // 获取指定节点的prev节点
         final Node<E> pred = succ.prev;
+        // 实例化一个新节点, 设置 指定节点的prev节点 为 此节点的prev节点, 指定节点为 此节点的next节点
         final Node<E> newNode = new Node<>(pred, e, succ);
+        // 指定节点的prev节点为新创建的节点
         succ.prev = newNode;
+        // 如果指定节点的pred节点为null, 表示指定节点为头节点
         if (pred == null)
+            // 将新创建的节点设置为头节点
             first = newNode;
         else
+            // 否则将 指定节点的pred节点 的next节点指向新创建的节点
             pred.next = newNode;
         size++;
         modCount++;
@@ -504,11 +520,13 @@ public class LinkedList<E>
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
     public void add(int index, E element) {
+        // 检验下标
         checkPositionIndex(index);
-
+        // 如果指定下标和长度相等, 则作为尾节点插入
         if (index == size)
             linkLast(element);
         else
+            // 先根据下标找到对应的Node, 然后再将元素插入到对应节点的前面
             linkBefore(element, node(index));
     }
 
@@ -562,16 +580,19 @@ public class LinkedList<E>
 
     /**
      * Returns the (non-null) Node at the specified element index.
+     * 根据下标找到对应的Node
      */
     Node<E> node(int index) {
         // assert isElementIndex(index);
-
+        // 判断指定下标是否小于 链表长度的一半(右移1 表示 size / 2), 用于判断指定下标隔头/尾节点谁更近, 就从谁开始遍历, 减少遍历次数
         if (index < (size >> 1)) {
+            // 如果小于, 表示指定下标在前半段, 从头节点开始往后遍历
             Node<E> x = first;
             for (int i = 0; i < index; i++)
                 x = x.next;
             return x;
         } else {
+            // 否则, 表示指定下标在后半段, 从尾节点开始往前遍历
             Node<E> x = last;
             for (int i = size - 1; i > index; i--)
                 x = x.prev;
@@ -870,13 +891,17 @@ public class LinkedList<E>
 
     private class ListItr implements ListIterator<E> {
         private Node<E> lastReturned;
+        // 下一次迭代的节点
         private Node<E> next;
+        // 下一个迭代的下标
         private int nextIndex;
         private int expectedModCount = modCount;
 
         ListItr(int index) {
             // assert isPositionIndex(index);
+            // 获取下一次迭代的节点
             next = (index == size) ? null : node(index);
+            // 获取下一次迭代的下标
             nextIndex = index;
         }
 
@@ -967,6 +992,10 @@ public class LinkedList<E>
         }
     }
 
+    /**
+     *
+     * @param <E>
+     */
     private static class Node<E> {
         E item;
         Node<E> next;

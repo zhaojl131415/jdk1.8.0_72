@@ -102,10 +102,14 @@ import java.util.function.UnaryOperator;
  * @see     Vector
  * @since   1.2
  */
-
 public class ArrayList<E> extends AbstractList<E>
         implements List<E>, RandomAccess, Cloneable, java.io.Serializable
 {
+    /**
+     * 版本号: 类的签名
+     * 序列化:
+     *
+     */
     private static final long serialVersionUID = 8683452581122892189L;
 
     /**
@@ -114,14 +118,16 @@ public class ArrayList<E> extends AbstractList<E>
     private static final int DEFAULT_CAPACITY = 10;
 
     /**
-     * Shared empty array instance used for empty instances.
+     * Shared empty array instance used for empty instances. 共享空数组实例用于空实例。
+     *
+     * 数组长度一经确定, 不能改变. 这里是ArrayList实例化时未指定容量长度, 需要实例一个空数组.
      */
     private static final Object[] EMPTY_ELEMENTDATA = {};
 
     /**
      * Shared empty array instance used for default sized empty instances. We
      * distinguish this from EMPTY_ELEMENTDATA to know how much to inflate when
-     * first element is added.
+     * first element is added. 共享空数组实例用于默认大小的空实例。我们区分这空ELEMENTDATA知道充气时,第一个元素是补充道。
      */
     private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
 
@@ -160,7 +166,10 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
-     * Constructs an empty list with an initial capacity of ten.
+     * Constructs an empty list with an initial capacity of ten. 构造一个空列表的初始容量10。
+     *
+     * ArrayList无参构造方法实例化, elementData指向静态常量.
+     * 不论多少个ArrayList实例化, 都是指向了堆中的DEFAULTCAPACITY_EMPTY_ELEMENTDATA. 节省内存空间.
      */
     public ArrayList() {
         this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
@@ -233,10 +242,12 @@ public class ArrayList<E> extends AbstractList<E>
 
         // overflow-conscious code
         if (minCapacity - elementData.length > 0)
+            // 扩容
             grow(minCapacity);
     }
 
     /**
+     * 最大数组容量
      * The maximum size of array to allocate.
      * Some VMs reserve some header words in an array.
      * Attempts to allocate larger arrays may result in
@@ -245,6 +256,7 @@ public class ArrayList<E> extends AbstractList<E>
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
     /**
+     * 扩容
      * Increases the capacity to ensure that it can hold at least the
      * number of elements specified by the minimum capacity argument.
      *
@@ -253,12 +265,15 @@ public class ArrayList<E> extends AbstractList<E>
     private void grow(int minCapacity) {
         // overflow-conscious code
         int oldCapacity = elementData.length;
+        // 扩容1.5倍: new = old + (old / 2)
         int newCapacity = oldCapacity + (oldCapacity >> 1);
+        // 如果1.5倍 < 小容量
         if (newCapacity - minCapacity < 0)
             newCapacity = minCapacity;
         if (newCapacity - MAX_ARRAY_SIZE > 0)
             newCapacity = hugeCapacity(minCapacity);
         // minCapacity is usually close to size, so this is a win:
+        // 其实就是数组拷贝
         elementData = Arrays.copyOf(elementData, newCapacity);
     }
 
@@ -457,6 +472,7 @@ public class ArrayList<E> extends AbstractList<E>
      */
     public boolean add(E e) {
         ensureCapacityInternal(size + 1);  // Increments modCount!!
+        // 尾部插入
         elementData[size++] = e;
         return true;
     }
@@ -471,9 +487,11 @@ public class ArrayList<E> extends AbstractList<E>
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
     public void add(int index, E element) {
+        // 下标范围检查
         rangeCheckForAdd(index);
 
         ensureCapacityInternal(size + 1);  // Increments modCount!!
+        //
         System.arraycopy(elementData, index, elementData, index + 1,
                          size - index);
         elementData[index] = element;
@@ -493,8 +511,9 @@ public class ArrayList<E> extends AbstractList<E>
         rangeCheck(index);
 
         modCount++;
+        // 根据下标获取旧值
         E oldValue = elementData(index);
-
+        //
         int numMoved = size - index - 1;
         if (numMoved > 0)
             System.arraycopy(elementData, index+1, elementData, index,
@@ -505,6 +524,8 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
+     * 效率低, 时间复杂度O(n)
+     *
      * Removes the first occurrence of the specified element from this list,
      * if it is present.  If the list does not contain the element, it is
      * unchanged.  More formally, removes the element with the lowest index
@@ -656,6 +677,7 @@ public class ArrayList<E> extends AbstractList<E>
 
     /**
      * A version of rangeCheck used by add and addAll.
+     * 添加时判断范围检查, 索引下标是否越界
      */
     private void rangeCheckForAdd(int index) {
         if (index > size || index < 0)
@@ -825,6 +847,7 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
+     * 返回一个迭代器在这个列表的元素序列。
      * Returns an iterator over the elements in this list in proper sequence.
      *
      * <p>The returned iterator is <a href="#fail-fast"><i>fail-fast</i></a>.
@@ -841,6 +864,7 @@ public class ArrayList<E> extends AbstractList<E>
     private class Itr implements Iterator<E> {
         int cursor;       // index of next element to return
         int lastRet = -1; // index of last element returned; -1 if no such
+        // 期望修改次数
         int expectedModCount = modCount;
 
         public boolean hasNext() {
@@ -849,6 +873,7 @@ public class ArrayList<E> extends AbstractList<E>
 
         @SuppressWarnings("unchecked")
         public E next() {
+            // 判断是否有修改
             checkForComodification();
             int i = cursor;
             if (i >= size)
@@ -898,6 +923,11 @@ public class ArrayList<E> extends AbstractList<E>
         }
 
         final void checkForComodification() {
+            /**
+             * 判断modCount和expectedModCount是否相等
+             * 因为在迭代器实例化时, 将modCount赋值给了expectedModCount
+             * 如果此时不相等, 表明在迭代过程中, 有线程操作了当前List, 导致modCount发生变更
+             */
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
         }

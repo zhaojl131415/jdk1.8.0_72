@@ -63,6 +63,33 @@ package java.util;
  * Java Collections Framework</a>.
  *
  * @since 1.4
+ *
+ * 标记接口: 表明实现这个接口的 List 集合是支持快速随机访问的，说白了就是下标访问
+ *
+ * ArrayList: 具备快速随机访问功能，基于数组实现，天然带下标，可以实现常量级的随机访问，复杂度为O(1)
+ * LinkedList: 不具备快速随机访问功能，基于链表实现，随机访问需要依靠遍历实现，复杂度为O(n)
+ *
+ * 作用:
+ * 当一个List拥有快速访问功能时，其遍历方法采用for循环最快速。而没有快速访问功能的List，遍历的时候采用Iterator迭代器最快速。
+ *
+ * 当我们获取到的List不明确是Arraylist，还是LinkedList的时候，我们可以通过RandomAccess来判断其是否支持快速随机访问(list instanceof RandomAccess)，
+ * 若支持则采用for循环遍历，否则采用迭代器遍历.
+ *
+ * 实例代码:
+ *         if(list instanceof RandomAccess) {
+ *             // for循环
+ *             System.out.println("采用for循环遍历");
+ *             for (int i = 0;i< list.size();i++) {
+ *                 System.out.println(list.get(i));
+ *             }
+ *         } else {
+ *             // 迭代器
+ *             System.out.println("采用迭代器遍历");
+ *             Iterator it = list.iterator();
+ *             while(it.hasNext()){
+ *                 System.out.println(it.next());
+ *             }
+ *         }
  */
 public interface RandomAccess {
 }

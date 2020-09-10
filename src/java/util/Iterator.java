@@ -50,6 +50,11 @@ import java.util.function.Consumer;
  * @see ListIterator
  * @see Iterable
  * @since 1.2
+ *
+ * 原生普通迭代器
+ * 特点:
+ * 只能移除/读
+ * 只能从前往后
  */
 public interface Iterator<E> {
     /**

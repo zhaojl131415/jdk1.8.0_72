@@ -56,6 +56,13 @@ package java.util;
  * @see Enumeration
  * @see List#listIterator()
  * @since   1.2
+ *
+ * 继承自原生普通迭代器
+ * 原生普通迭代器特点: 只能从前往后的读/移除
+ * 封装集合迭代器特点:
+ * 1.顺序可以从前往后, 也可以从后往前
+ * 2.可以添加/修改/移除元素
+ * 3.可以指定迭代起始的下标位置
  */
 public interface ListIterator<E> extends Iterator<E> {
     // Query Operations
@@ -68,6 +75,8 @@ public interface ListIterator<E> extends Iterator<E> {
      *
      * @return {@code true} if the list iterator has more elements when
      *         traversing the list in the forward direction
+     *
+     * 是否有下一个元素
      */
     boolean hasNext();
 
@@ -91,6 +100,7 @@ public interface ListIterator<E> extends Iterator<E> {
      *
      * @return {@code true} if the list iterator has more elements when
      *         traversing the list in the reverse direction
+     * 是否有上一个元素
      */
     boolean hasPrevious();
 

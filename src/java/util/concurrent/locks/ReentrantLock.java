@@ -234,8 +234,8 @@ public class ReentrantLock implements Lock, java.io.Serializable {
         private static final long serialVersionUID = -3000897897090466540L;
 
         final void lock() {
-            // 加锁
             /**
+             * 获取锁
              * @see AbstractQueuedSynchronizer#acquire(int)
              */
             acquire(1);
@@ -246,21 +246,22 @@ public class ReentrantLock implements Lock, java.io.Serializable {
          * recursive call or no waiters or is first.
          */
         protected final boolean tryAcquire(int acquires) {
+            // 获取当前线程
             final Thread current = Thread.currentThread();
-            // 获取当前同步状态的值
+            // 获取lock对象的上锁状态，如果为0表示锁是自由状态，如果为1表示被上锁，大于1则表示重入
             int c = getState();
             // 如果为0, 表示锁是自由状态, 还没有线程获取到锁
             if (c == 0) {
-                // 判断是否需要排队
+                // 判断自己是否需要排队
                 if (!hasQueuedPredecessors() &&
-                    // CAS获取锁
+                    // 如果不需要排队则进行cas尝试加锁
                     compareAndSetState(0, acquires)) {
-                    // 设置当前线程持有锁, 拥有独占访问权
+                    // 设置当前线程持有锁, 拥有独占访问权, 方便后面判断是否为重入锁
                     setExclusiveOwnerThread(current);
                     return true;
                 }
             }
-            // 判断 当前线程 是否为 当前持有锁的线程, 如果是, 则为重入锁
+            // 如果C不等于0, 然后判断 当前线程 是否为 当前持有锁的线程, 如果是, 则为重入锁, 否则直接返回false, 加锁失败
             else if (current == getExclusiveOwnerThread()) {
                 // 状态 + 1
                 int nextc = c + acquires;

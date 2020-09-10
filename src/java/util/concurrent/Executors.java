@@ -84,6 +84,8 @@ public class Executors {
      * @param nThreads the number of threads in the pool
      * @return the newly created thread pool
      * @throws IllegalArgumentException if {@code nThreads <= 0}
+     *
+     * 定长线程池
      */
     public static ExecutorService newFixedThreadPool(int nThreads) {
         return new ThreadPoolExecutor(nThreads, nThreads,
@@ -166,6 +168,8 @@ public class Executors {
      * guaranteed not to be reconfigurable to use additional threads.
      *
      * @return the newly created single-threaded Executor
+     *
+     * 单线程池
      */
     public static ExecutorService newSingleThreadExecutor() {
         return new FinalizableDelegatedExecutorService
@@ -211,6 +215,8 @@ public class Executors {
      * may be created using {@link ThreadPoolExecutor} constructors.
      *
      * @return the newly created thread pool
+     *
+     * 变长线程池
      */
     public static ExecutorService newCachedThreadPool() {
         return new ThreadPoolExecutor(0, Integer.MAX_VALUE,

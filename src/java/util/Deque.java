@@ -189,6 +189,9 @@ package java.util;
  * @author Josh Bloch
  * @since  1.6
  * @param <E> the type of elements held in this collection
+ *
+ * 双端队列: 继承自队列(FIFO)
+ * 双端队列: 双端都可以添加和移除
  */
 public interface Deque<E> extends Queue<E> {
     /**

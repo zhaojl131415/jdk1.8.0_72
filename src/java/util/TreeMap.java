@@ -106,6 +106,11 @@ import java.util.function.Consumer;
  * @see Comparator
  * @see Collection
  * @since 1.2
+ *
+ * TreeMap HashMap
+ * 区别:
+ * TreeMap: 保证顺序
+ * HashMap: key散列算法, 所以没有顺序
  */
 
 public class TreeMap<K,V>
@@ -115,7 +120,7 @@ public class TreeMap<K,V>
     /**
      * The comparator used to maintain order in this tree map, or
      * null if it uses the natural ordering of its keys.
-     *
+     * 比较器
      * @serial
      */
     private final Comparator<? super K> comparator;

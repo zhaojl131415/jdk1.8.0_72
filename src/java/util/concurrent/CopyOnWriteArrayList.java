@@ -87,6 +87,15 @@ import java.util.function.UnaryOperator;
  * @since 1.5
  * @author Doug Lea
  * @param <E> the type of elements held in this collection
+ *
+ * 写时复制: 用于读多写少的并发场景
+ * 缺点:
+ * 1.数据一致性问题: 只能保证数据的最终一致性，不能保证数据的实时一致性
+ * 2.内存占用问题: 因为写时复制机制，在进行写操作的时候，内存里会同时驻扎两个对象的内存，旧的对象和新写入的对象（注意:在复制的时候只是复制容器里的引用，只是在写的时候会创建新对象添加到新容器里，而旧容器的对象还在使用，所以有两份对象内存）。
+ *               如果这些对象占用的内存比较大，比如说200M左右，那么再写入100M数据进去，内存就会占用300M，那么这个时候很有可能造成频繁的Yong GC和Full GC。
+ *               之前我们系统中使用了一个服务由于每晚使用CopyOnWrite机制更新大对象，造成了每晚15秒的Full GC，应用响应时间也随之变长。
+ *
+ * 针对内存占用问题，可以通过压缩容器中的元素的方法来减少大对象的内存消耗，比如，如果元素全是10进制的数字，可以考虑把它压缩成36进制或64进制。或者不使用CopyOnWrite容器，而使用其他的并发容器，如ConcurrentHashMap。
  */
 public class CopyOnWriteArrayList<E>
     implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
@@ -95,7 +104,7 @@ public class CopyOnWriteArrayList<E>
     /** The lock protecting all mutators */
     final transient ReentrantLock lock = new ReentrantLock();
 
-    /** The array, accessed only via getArray/setArray. */
+    /** The array, accessed only via getArray/setArray. 用来存储元素 */
     private transient volatile Object[] array;
 
     /**
@@ -115,6 +124,7 @@ public class CopyOnWriteArrayList<E>
 
     /**
      * Creates an empty list.
+     * 实例化: 一个空数组
      */
     public CopyOnWriteArrayList() {
         setArray(new Object[0]);
@@ -130,6 +140,7 @@ public class CopyOnWriteArrayList<E>
      */
     public CopyOnWriteArrayList(Collection<? extends E> c) {
         Object[] elements;
+        // 判断类型
         if (c.getClass() == CopyOnWriteArrayList.class)
             elements = ((CopyOnWriteArrayList<?>)c).getArray();
         else {
@@ -431,13 +442,19 @@ public class CopyOnWriteArrayList<E>
      * @return {@code true} (as specified by {@link Collection#add})
      */
     public boolean add(E e) {
+        // 获取全局锁
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
+            // 获取数组
             Object[] elements = getArray();
+            // 获取长度
             int len = elements.length;
+            // 创建一个新数组, 数组拷贝
             Object[] newElements = Arrays.copyOf(elements, len + 1);
+            // 设定新元素
             newElements[len] = e;
+            // 将新数组赋值给array
             setArray(newElements);
             return true;
         } finally {
@@ -462,12 +479,18 @@ public class CopyOnWriteArrayList<E>
                 throw new IndexOutOfBoundsException("Index: "+index+
                                                     ", Size: "+len);
             Object[] newElements;
+            // 计算新插入元素位置
             int numMoved = len - index;
+            // 如果为0, 表示插入到末尾
             if (numMoved == 0)
                 newElements = Arrays.copyOf(elements, len + 1);
             else {
+                // 插入到中间
+                // 实例化一个新数组
                 newElements = new Object[len + 1];
+                // 拷贝前半段
                 System.arraycopy(elements, 0, newElements, 0, index);
+                // 拷贝后半段
                 System.arraycopy(elements, index, newElements, index + 1,
                                  numMoved);
             }
@@ -603,6 +626,7 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
+     * 添加不存在的元素, 如果存在不添加
      * Appends the element, if not present.
      *
      * @param e element to be added to this list, if absent
@@ -610,6 +634,7 @@ public class CopyOnWriteArrayList<E>
      */
     public boolean addIfAbsent(E e) {
         Object[] snapshot = getArray();
+        // 判断元素是否存在, 如果存在直接返回false
         return indexOf(e, snapshot, 0, snapshot.length) >= 0 ? false :
             addIfAbsent(e, snapshot);
     }
@@ -624,12 +649,22 @@ public class CopyOnWriteArrayList<E>
         try {
             Object[] current = getArray();
             int len = current.length;
+            // 判断传参进来的快照数组, 和当前获取的数组是否相等, 如果不相等, 表示被修改过
             if (snapshot != current) {
-                // Optimize for lost race to another addXXX operation
+                // Optimize for lost race to another addXXX operation 优化比赛输给了另一个添加XXX操作
+                /**
+                 * 优化: 我们正常写代码, 就不传快照数组的参数了, 直接重新获取数组, 判断是否存在
+                 * 一切为了性能 all for optimize
+                 *
+                 * 获取快照数组和当前数组的长度, 取小, 因为并发情况下, 当前数组可能进行了操作: 添加/移除
+                 */
                 int common = Math.min(snapshot.length, len);
                 for (int i = 0; i < common; i++)
+                    // 如果快照数组和当前数组的相同索引位置元素不相等, 且 当前数组索引的元素和想要添加的元素相等, 表示已存在, 不添加返回false
+                    // 如果这里找到已存在, 就不用判断之后的数组, 可以少遍历
                     if (current[i] != snapshot[i] && eq(e, current[i]))
                         return false;
+                // 如果添加了元素, 判断当前数组从common位置到len位置是否存在需要添加的元素, 如果存在返回false
                 if (indexOf(e, current, common, len) >= 0)
                         return false;
             }
