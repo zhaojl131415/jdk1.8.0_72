@@ -762,7 +762,7 @@ public abstract class AbstractQueuedSynchronizer
     /**
      * Sets head of queue, and checks if successor may be waiting
      * in shared mode, if so propagating if either propagate > 0 or
- ':>    * PROPAGATE status was set.
+     * PROPAGATE status was set.
      *
      * @param node the node
      * @param propagate the return value from a tryAcquireShared
