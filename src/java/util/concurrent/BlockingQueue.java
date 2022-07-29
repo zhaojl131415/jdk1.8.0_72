@@ -176,6 +176,11 @@ import java.util.Queue;
  * @since 1.5
  * @author Doug Lea
  * @param <E> the type of elements held in this collection
+ *
+ *      抛异常      阻塞      超时      返回特殊值
+ * 插入  add        put      offer    offer
+ * 取出  remove     take     poll     poll
+ * 获取  element                      peek
  */
 public interface BlockingQueue<E> extends Queue<E> {
     /**

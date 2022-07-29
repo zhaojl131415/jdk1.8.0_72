@@ -156,6 +156,10 @@ public class PropertyDescriptor extends FeatureDescriptor {
             throw new IntrospectionException("Target Bean class is null");
         }
         setClass0(bean);
+        /**
+         * 转换方法名为小写
+         * @see Introspector#decapitalize(java.lang.String)
+         */
         setName(Introspector.decapitalize(base));
         setReadMethod(read);
         setWriteMethod(write);

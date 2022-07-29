@@ -285,10 +285,12 @@ public class Introspector {
         if (name == null || name.length() == 0) {
             return name;
         }
+        // 方法名长度 > 1 且 如果截取后的方法名 前两位都为大写的话, 则不处理, 直接返回
         if (name.length() > 1 && Character.isUpperCase(name.charAt(1)) &&
                         Character.isUpperCase(name.charAt(0))){
             return name;
         }
+        // 否则将第一位转成小写后, 返回
         char chars[] = name.toCharArray();
         chars[0] = Character.toLowerCase(chars[0]);
         return new String(chars);
@@ -452,11 +454,12 @@ public class Introspector {
      * @return An array of PropertyDescriptors describing the editable
      * properties supported by the target bean.
      */
-
+    // 遍历所有的方法找出set、get、is
     private PropertyDescriptor[] getTargetPropertyInfo() {
 
         // Check if the bean has its own BeanInfo that will provide
         // explicit information.
+        // 属性描述
         PropertyDescriptor[] explicitProperties = null;
         if (explicitBeanInfo != null) {
             explicitProperties = getPropertyDescriptors(this.explicitBeanInfo);
@@ -498,25 +501,35 @@ public class Introspector {
                 Class<?> resultType = method.getReturnType();
                 int argCount = argTypes.length;
                 PropertyDescriptor pd = null;
-
+                // 如果方法名长度 <= 3 并且 不是以is开头, 则跳过
                 if (name.length() <= 3 && !name.startsWith(IS_PREFIX)) {
                     // Optimization. Don't bother with invalid propertyNames.
                     continue;
                 }
 
                 try {
-
+                    // 参数数量为0的情况, is/get
                     if (argCount == 0) {
                         if (name.startsWith(GET_PREFIX)) {
                             // Simple getter
+                            //
+                            /**
+                             * 如果方法名为get前缀
+                             * 实例化一个属性描述符: 方法名截掉前三位
+                             * @see PropertyDescriptor#PropertyDescriptor(java.lang.Class, java.lang.String, java.lang.reflect.Method, java.lang.reflect.Method)
+                             */
                             pd = new PropertyDescriptor(this.beanClass, name.substring(3), method, null);
                         } else if (resultType == boolean.class && name.startsWith(IS_PREFIX)) {
                             // Boolean getter
+                            // 如果方法名为is前缀
                             pd = new PropertyDescriptor(this.beanClass, name.substring(2), method, null);
                         }
+                    // 参数数量为1的情况
                     } else if (argCount == 1) {
+                        // 方法为get前缀
                         if (int.class.equals(argTypes[0]) && name.startsWith(GET_PREFIX)) {
                             pd = new IndexedPropertyDescriptor(this.beanClass, name.substring(3), null, null, method, null);
+                        // 方法为set前缀
                         } else if (void.class.equals(resultType) && name.startsWith(SET_PREFIX)) {
                             // Simple setter
                             pd = new PropertyDescriptor(this.beanClass, name.substring(3), null, method);

@@ -86,6 +86,9 @@ public class Executors {
      * @throws IllegalArgumentException if {@code nThreads <= 0}
      *
      * 定长线程池
+     *
+     * LinkedBlockingQueue: 长度为: Integer.MAX_VALUE, 所以也称为无界阻塞队列.
+     * 当无限多的任务存入队列, 占用内存: OOM
      */
     public static ExecutorService newFixedThreadPool(int nThreads) {
         return new ThreadPoolExecutor(nThreads, nThreads,
@@ -217,6 +220,8 @@ public class Executors {
      * @return the newly created thread pool
      *
      * 变长线程池
+     *
+     * 最大线程数量为Integer.MAX_VALUE, 创建无限的线程, 占用无限的cpu资源
      */
     public static ExecutorService newCachedThreadPool() {
         return new ThreadPoolExecutor(0, Integer.MAX_VALUE,

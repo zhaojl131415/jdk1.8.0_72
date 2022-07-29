@@ -33,6 +33,8 @@ import java.security.PrivilegedAction;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 import java.util.ServiceConfigurationError;
+
+import sun.nio.ch.DefaultSelectorProvider;
 import sun.security.action.GetPropertyAction;
 
 
@@ -129,6 +131,7 @@ public abstract class SelectorProvider {
     /**
      * Returns the system-wide default selector provider for this invocation of
      * the Java virtual machine.
+     * 返回此Java虚拟机调用的系统级默认选择器提供程序。
      *
      * <p> The first invocation of this method locates the default provider
      * object as follows: </p>
@@ -172,6 +175,11 @@ public abstract class SelectorProvider {
                                 return provider;
                             if (loadProviderAsService())
                                 return provider;
+                            /**
+                             * 此处会根据Java虚拟机调用的系统(window/Linux), 创建不同的选择器
+                             * 打开Selector处理Channel, 底层即创建epoll, 需要查看openjdk源码: DefaultSelectorProvider
+                             * 最终在openJdk源码中, 实现创建EPollSelectorProvider, 最终调用本地方法创建EPoll
+                             */
                             provider = sun.nio.ch.DefaultSelectorProvider.create();
                             return provider;
                         }

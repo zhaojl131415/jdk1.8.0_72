@@ -105,6 +105,7 @@ public abstract class ServerSocketChannel
      *          If an I/O error occurs
      */
     public static ServerSocketChannel open() throws IOException {
+        // SelectorProvider.provider() = EPollSelectorImpl()
         return SelectorProvider.provider().openServerSocketChannel();
     }
 

@@ -250,7 +250,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
             final Thread current = Thread.currentThread();
             // 获取lock对象的上锁状态，如果为0表示锁是自由状态，如果为1表示被上锁，大于1则表示重入
             int c = getState();
-            // 如果为0, 表示锁是自由状态, 还没有线程获取到锁
+            // 如果为0, 表示锁是自由(无锁)状态, 还没有线程获取到锁
             if (c == 0) {
                 // 判断自己是否需要排队
                 if (!hasQueuedPredecessors() &&

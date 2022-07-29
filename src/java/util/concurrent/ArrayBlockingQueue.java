@@ -78,6 +78,8 @@ import java.util.Spliterator;
  * @since 1.5
  * @author Doug Lea
  * @param <E> the type of elements held in this collection
+ *
+ * 构造方法都必须带有容量长度的参数, 表示ArrayBlockingQueue是有界队列
  */
 public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         implements BlockingQueue<E>, java.io.Serializable {
@@ -93,10 +95,10 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     /** The queued items */
     final Object[] items;
 
-    /** items index for next take, poll, peek or remove */
+    /** items index for next take, poll, peek or remove 记录下一次取出的位置 */
     int takeIndex;
 
-    /** items index for next put, offer, or add */
+    /** items index for next put, offer, or add 记录下一次存储()的位置  */
     int putIndex;
 
     /** Number of elements in the queue */
@@ -151,6 +153,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
+     * 插入元素在当前位置,进步,和信号。称只有当持有锁。
      * Inserts element at current put position, advances, and signals.
      * Call only when holding lock.
      */

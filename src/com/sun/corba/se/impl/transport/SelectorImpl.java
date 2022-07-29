@@ -341,6 +341,7 @@ class SelectorImpl
     private void startSelector()
     {
         try {
+            // 打开Selector处理Channel, 底层即创建epoll
             selector = Selector.open();
         } catch (IOException e) {
             if (orb.transportDebugFlag) {

@@ -762,7 +762,7 @@ public abstract class AbstractQueuedSynchronizer
     /**
      * Sets head of queue, and checks if successor may be waiting
      * in shared mode, if so propagating if either propagate > 0 or
-     * PROPAGATE status was set.
+ ':>    * PROPAGATE status was set.
      *
      * @param node the node
      * @param propagate the return value from a tryAcquireShared
@@ -1308,7 +1308,10 @@ public abstract class AbstractQueuedSynchronizer
      *        can represent anything you like.
      */
     public final void acquire(int arg) {
-        // 尝试加锁, 如果加锁成功, 这里取反则为false, 方法直接结束,
+        /**
+         * 尝试加锁, 如果加锁成功, 这里取反则为false, 方法直接结束,
+         * @see ReentrantLock.FairSync#tryAcquire(int)
+         */
         if (!tryAcquire(arg) &&
             // 如果加锁失败, 取反则为true, 才会执行到这
             // addWaiter: 将当前新线程加入等待队列队尾

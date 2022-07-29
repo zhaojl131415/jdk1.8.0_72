@@ -1873,6 +1873,8 @@ public final class Class<T> implements java.io.Serializable,
      * declared by the class or interface represented by this
      * {@code Class} object. This includes public, protected, default
      * (package) access, and private fields, but excludes inherited fields.
+     * 返回一个Field对象的数组，由该class对象表示的类或接口声明的所有字段组成。
+     * 这包括public、protected、default和private的字段，但不包括继承父类的字段。
      *
      * <p> If this {@code Class} object represents a class or interface with no
      * declared fields, then this method returns an array of length 0.

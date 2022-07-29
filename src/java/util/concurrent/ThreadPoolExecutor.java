@@ -315,6 +315,9 @@ import java.util.*;
  *
  * @since 1.5
  * @author Doug Lea
+ *
+ * 任务插入优先级: 核心线程 -> 任务队列 -> 非核心线程
+ * 任务执行优先级: 核心线程 -> 非核心线程 -> 任务队列
  */
 public class ThreadPoolExecutor extends AbstractExecutorService {
     /**
@@ -889,11 +892,12 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * @param core if true use corePoolSize as bound, else
      * maximumPoolSize. (A boolean indicator is used here rather than a
      * value to ensure reads of fresh values after checking other pool
-     * state).
+     * state). 是否为核心线程
      * @return true if successful
      */
     private boolean addWorker(Runnable firstTask, boolean core) {
         retry:
+        // 自旋
         for (;;) {
             int c = ctl.get();
             int rs = runStateOf(c);
@@ -924,8 +928,10 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         Worker w = null;
         try {
             w = new Worker(firstTask);
+            // 获取工作器的线程
             final Thread t = w.thread;
             if (t != null) {
+                // 上锁 保证线程安全
                 final ReentrantLock mainLock = this.mainLock;
                 mainLock.lock();
                 try {
@@ -948,6 +954,10 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                     mainLock.unlock();
                 }
                 if (workerAdded) {
+                    // 启动线程
+                    /**
+                     * @see Worker#run()
+                     */
                     t.start();
                     workerStarted = true;
                 }
@@ -1016,6 +1026,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                 if (workerCountOf(c) >= min)
                     return; // replacement not needed
             }
+            // 线程复用的关键
             addWorker(null, false);
         }
     }
@@ -1117,6 +1128,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * user code.
      *
      * @param w the worker
+     *
+     * 任务执行优先级: 核心线程 -> 非核心线程 -> 任务队列
      */
     final void runWorker(Worker w) {
         Thread wt = Thread.currentThread();
@@ -1125,6 +1138,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         w.unlock(); // allow interrupts
         boolean completedAbruptly = true;
         try {
+            // 这里是个或, 如果第一个条件为false, 才会走到第二个,
+            // 也就是说只有当核心线程中的任务为null, 才会去判断非核心线程的任务是否也为null,
+            // 如果非核心线程的任务也为null, 才会去处理任务队列
             while (task != null || (task = getTask()) != null) {
                 w.lock();
                 // If pool is stopping, ensure thread is interrupted;
@@ -1140,7 +1156,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                     beforeExecute(wt, task);
                     Throwable thrown = null;
                     try {
-                        // 直接通过 task.run() 来执行具体的任务
+                        // 直接通过方法调用 task.run() , 而不是start(), 来执行具体的任务
                         task.run();
                     } catch (RuntimeException x) {
                         thrown = x; throw x;
@@ -1274,19 +1290,26 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      *
      * @param corePoolSize the number of threads to keep in the pool, even
      *        if they are idle, unless {@code allowCoreThreadTimeOut} is set
+     *                    核心线程数
      * @param maximumPoolSize the maximum number of threads to allow in the
      *        pool
+     *                        线程池最大线程数
      * @param keepAliveTime when the number of threads is greater than
      *        the core, this is the maximum time that excess idle threads
      *        will wait for new tasks before terminating.
+     *                      空闲时间
      * @param unit the time unit for the {@code keepAliveTime} argument
+     *             空闲时间单位
      * @param workQueue the queue to use for holding tasks before they are
      *        executed.  This queue will hold only the {@code Runnable}
      *        tasks submitted by the {@code execute} method.
+     *                  任务队列
      * @param threadFactory the factory to use when the executor
      *        creates a new thread
+     *                      线程工厂
      * @param handler the handler to use when execution is blocked
      *        because the thread bounds and queue capacities are reached
+     *                拒绝策略
      * @throws IllegalArgumentException if one of the following holds:<br>
      *         {@code corePoolSize < 0}<br>
      *         {@code keepAliveTime < 0}<br>
@@ -1359,14 +1382,14 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         int c = ctl.get();
         // 下面会涉及到3步操作
         // 1.首先判断当前线程池中之行的 任务数量 是否小于 corePoolSize
-        // 如果小于的话，通过 addWorker(command, true)新建一个线程，并将任务(command)添加到该线程中; 然后，启动该线程从而执行任务。
         if (workerCountOf(c) < corePoolSize) {
+            // 如果小于的话，通过 addWorker(command, true)新建一个线程，并将任务(command)添加到该线程中; 然后，启动该线程从而执行任务。
             if (addWorker(command, true))
                 return;
             c = ctl.get();
         }
         // 2.如果当前之行的任务数量大于等于 corePoolSize 的时候就会走到这里
-        // 通过 isRunning 方法判断线程池状态，线程池处于 RUNNING 状态才会被并且队列可以加入任务，该任务才会被加入进去
+        // 通过 isRunning 方法判断线程池状态，线程池处于 RUNNING 状态才会被并且队列可以加入任务，该任务才会被加入到队列中去
         if (isRunning(c) && workQueue.offer(command)) {
             int recheck = ctl.get();
             // 再次获取线程池状态，如果线程池状态不是 RUNNING 状态就需要从任务队列中移除任务，并尝试判断线程是否全部执行完毕。同时执行拒绝策略。
