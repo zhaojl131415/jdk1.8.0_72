@@ -67,6 +67,8 @@ import sun.security.util.SecurityConstants;
  *
  * @since 1.5
  * @author Doug Lea
+ *
+ * 线程工具类
  */
 public class Executors {
 
@@ -85,8 +87,9 @@ public class Executors {
      * @return the newly created thread pool
      * @throws IllegalArgumentException if {@code nThreads <= 0}
      *
+     * <br/>
      * 定长线程池
-     *
+     * <br/>
      * LinkedBlockingQueue: 长度为: Integer.MAX_VALUE, 所以也称为无界阻塞队列.
      * 当无限多的任务存入队列, 占用内存: OOM
      */

@@ -84,6 +84,8 @@ import java.io.InvalidObjectException;
  * @see     TreeSet
  * @see     HashMap
  * @since   1.2
+ *
+ * 底层其实就是HashMap, 存的值对应HashMap的key, value为默认的PRESENT
  */
 
 public class HashSet<E>

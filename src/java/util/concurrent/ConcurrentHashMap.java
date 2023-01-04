@@ -791,6 +791,11 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * when table is null, holds the initial table size to use upon
      * creation, or 0 for default. After initialization, holds the
      * next element count value upon which to resize the table.
+     *
+     * 表初始化和调整大小控制。
+     * 如果为负数，则表示正在初始化或调整表大小：-1 表示初始化，否则为 -（1 + 活动调整大小的线程数）。
+     * 否则，当 table 为 null 时，保留创建时使用的初始表大小，或默认值为 0。
+     * 初始化后，保存要调整表大小的下一个元素计数值
      */
     private transient volatile int sizeCtl;
 
@@ -1009,11 +1014,14 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     /** Implementation for put and putIfAbsent */
     final V putVal(K key, V value, boolean onlyIfAbsent) {
         if (key == null || value == null) throw new NullPointerException();
+        // hash计算
         int hash = spread(key.hashCode());
         int binCount = 0;
+        // 遍历节点数组
         for (Node<K,V>[] tab = table;;) {
             Node<K,V> f; int n, i, fh;
             if (tab == null || (n = tab.length) == 0)
+                // 初始化表
                 tab = initTable();
             else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
                 if (casTabAt(tab, i, null,
@@ -1021,11 +1029,14 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                     break;                   // no lock when adding to empty bin
             }
             else if ((fh = f.hash) == MOVED)
+                // 扩容
                 tab = helpTransfer(tab, f);
             else {
                 V oldVal = null;
+                // 加锁
                 synchronized (f) {
                     if (tabAt(tab, i) == f) {
+                        // 表示当前hash对应位置的链表已经存在值.
                         if (fh >= 0) {
                             binCount = 1;
                             for (Node<K,V> e = f;; ++binCount) {
@@ -1039,6 +1050,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                     break;
                                 }
                                 Node<K,V> pred = e;
+                                // 尾插法
                                 if ((e = e.next) == null) {
                                     pred.next = new Node<K,V>(hash, key,
                                                               value, null);
@@ -2219,13 +2231,14 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
 
     /**
      * Initializes table, using the size recorded in sizeCtl.
+     * 使用 sizeCtl 中记录的大小初始化表。
      */
     private final Node<K,V>[] initTable() {
         Node<K,V>[] tab; int sc;
         while ((tab = table) == null || tab.length == 0) {
             if ((sc = sizeCtl) < 0)
-                Thread.yield(); // lost initialization race; just spin
-            else if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {
+                Thread.yield(); // lost initialization race; just spin 失去初始化比赛资格, 只需自旋, 线程让出时间片.
+            else if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {  // CAS判断, 满足则执行初始化
                 try {
                     if ((tab = table) == null || tab.length == 0) {
                         int n = (sc > 0) ? sc : DEFAULT_CAPACITY;
