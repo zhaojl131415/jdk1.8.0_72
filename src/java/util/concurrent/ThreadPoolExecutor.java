@@ -546,6 +546,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 
     /**
      * The default rejected execution handler
+     * 线程池默认的拒绝策略: 中止
      */
     private static final RejectedExecutionHandler defaultHandler =
         new AbortPolicy();
@@ -927,6 +928,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         boolean workerAdded = false;
         Worker w = null;
         try {
+            // 实例化一个工作线程worker, worker继承自AQS
             w = new Worker(firstTask);
             // 获取工作器的线程
             final Thread t = w.thread;

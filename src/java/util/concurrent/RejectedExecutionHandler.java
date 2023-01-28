@@ -40,6 +40,8 @@ package java.util.concurrent;
  *
  * @since 1.5
  * @author Doug Lea
+ *
+ * 线程池拒绝策略
  */
 public interface RejectedExecutionHandler {
 
@@ -57,6 +59,8 @@ public interface RejectedExecutionHandler {
      * @param r the runnable task requested to be executed
      * @param executor the executor attempting to execute this task
      * @throws RejectedExecutionException if there is no remedy
+     *
+     * 线程池执行拒绝策略
      */
     void rejectedExecution(Runnable r, ThreadPoolExecutor executor);
 }
