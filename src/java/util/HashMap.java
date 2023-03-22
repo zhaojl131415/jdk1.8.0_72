@@ -722,7 +722,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         if ((tab = table) == null || (n = tab.length) == 0)
             // 初始化map的节点数组，并分配容量
             n = (tab = resize()).length;
-        // 根据hash值计算出节点数组下标对应的Node是否为空
+        // 根据hash值计算出节点数组下标对应的Node是否为空, 是否hash冲突
         // (n - 1) & hash : (长度 - 1)和hash进行位与运算, 长度为2的幂次方, 0000 1111 & 0010 1010 = 0000 1010
         if ((p = tab[i = (n - 1) & hash]) == null)
             // 为空，直接新建节点并存入当前节点数组下标中

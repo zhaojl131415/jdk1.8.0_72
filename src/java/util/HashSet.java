@@ -84,6 +84,8 @@ import java.io.InvalidObjectException;
  * @see     TreeSet
  * @see     HashMap
  * @since   1.2
+ *
+ * 其实就是一个HashMap, 存入的数据直接作为key, 一个固定的空对象作为value
  */
 
 public class HashSet<E>

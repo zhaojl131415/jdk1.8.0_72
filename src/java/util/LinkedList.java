@@ -124,12 +124,18 @@ public class LinkedList<E>
      * 作为链表的第一个元素
      */
     private void linkFirst(E e) {
+        // 获取头节点
         final Node<E> f = first;
+        // 实例化一个新节点, 设置原头节点为此节点的next节点
         final Node<E> newNode = new Node<>(null, e, f);
+        // 将新创建的节点设为头节点
         first = newNode;
+        // 如果原头节点为null, 表示没有头节点, 当前节点为第一个加入连接的节点.
         if (f == null)
+            // 将当前节点设置为尾节点
             last = newNode;
         else
+            // 否则将原头节点的prev节点指向当前节点
             f.prev = newNode;
         size++;
         modCount++;
@@ -183,25 +189,36 @@ public class LinkedList<E>
 
     /**
      * Unlinks non-null first node f.
+     * 解开连接的头节点
      */
     private E unlinkFirst(Node<E> f) {
+        // 断言当前节点为头节点, 且不为空, 这里注释了断言, 因为在调用此方法前已经做了空判断
         // assert f == first && f != null;
+        // 获取当前节点的数据, 后续此方法的返回结果为当前节点的数据
         final E element = f.item;
+        // 获取当前头节点的next节点
         final Node<E> next = f.next;
+        // 设置为空, 利于垃圾回收
         f.item = null;
         f.next = null; // help GC
+        // 将当前节点的下一个节点设置为新的头节点
         first = next;
+        // 如果下一个节点为空
         if (next == null)
+            // 则设置为节点为空, 因为下一个节点为空, 也就表示下一个节点的prev也为空, 所以这一步不用设置prev为空
             last = null;
         else
+            // 设置下一节点的prev为空
             next.prev = null;
         size--;
         modCount++;
+        // 返回当前节点的数据
         return element;
     }
 
     /**
      * Unlinks non-null last node l.
+     * 解开连接的尾节点
      */
     private E unlinkLast(Node<E> l) {
         // assert l == last && l != null;
@@ -997,8 +1014,11 @@ public class LinkedList<E>
      * @param <E>
      */
     private static class Node<E> {
+        // 当前节点数据
         E item;
+        // 下一节点
         Node<E> next;
+        // 上一节点
         Node<E> prev;
 
         Node(Node<E> prev, E element, Node<E> next) {

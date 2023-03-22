@@ -101,14 +101,18 @@ import java.util.function.UnaryOperator;
  * @see     LinkedList
  * @see     Vector
  * @since   1.2
+ *
+ * 继承了抽象类AbstractList, 而抽象类实现了List接口, 这里也实现了List接口, 为什么这样写? 没有别的意义, 作者画蛇添足
+ * @see RandomAccess 随机访问
+ * @see Cloneable 数据拷贝(深拷贝,浅拷贝)
+ * @see java.io.Serializable 序列化: 为了网络传输, 为了持久化
  */
 public class ArrayList<E> extends AbstractList<E>
         implements List<E>, RandomAccess, Cloneable, java.io.Serializable
 {
     /**
      * 版本号: 类的签名
-     * 序列化:
-     *
+     * 序列化: 内存持久化到硬盘中 反序列化: 从硬盘读取到内存中
      */
     private static final long serialVersionUID = 8683452581122892189L;
 
@@ -127,7 +131,8 @@ public class ArrayList<E> extends AbstractList<E>
     /**
      * Shared empty array instance used for default sized empty instances. We
      * distinguish this from EMPTY_ELEMENTDATA to know how much to inflate when
-     * first element is added. 共享空数组实例用于默认大小的空实例。我们区分这空ELEMENTDATA知道充气时,第一个元素是补充道。
+     * first element is added.
+     * 共享空数组实例用于默认大小的空实例。我们区分这空ELEMENTDATA知道充气时,第一个元素是补充道。
      */
     private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
 
@@ -229,7 +234,9 @@ public class ArrayList<E> extends AbstractList<E>
         }
     }
 
+    // 明确容量
     private void ensureCapacityInternal(int minCapacity) {
+
         if (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
             minCapacity = Math.max(DEFAULT_CAPACITY, minCapacity);
         }
@@ -237,6 +244,7 @@ public class ArrayList<E> extends AbstractList<E>
         ensureExplicitCapacity(minCapacity);
     }
 
+    // 明确容量
     private void ensureExplicitCapacity(int minCapacity) {
         modCount++;
 
@@ -273,7 +281,10 @@ public class ArrayList<E> extends AbstractList<E>
         if (newCapacity - MAX_ARRAY_SIZE > 0)
             newCapacity = hugeCapacity(minCapacity);
         // minCapacity is usually close to size, so this is a win:
-        // 其实就是数组拷贝
+        /**
+         * 其实就是数组拷贝, 拿空间换时间, 创建两块数组空间, 直接拷贝
+         * 为什么不从原来的数组扩容? 拿空间换时间, 性能更快.
+         */
         elementData = Arrays.copyOf(elementData, newCapacity);
     }
 
