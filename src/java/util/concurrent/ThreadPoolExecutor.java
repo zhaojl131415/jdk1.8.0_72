@@ -383,10 +383,15 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     private static final int CAPACITY   = (1 << COUNT_BITS) - 1;
 
     // runState is stored in the high-order bits
+    // 正常运行状态
     private static final int RUNNING    = -1 << COUNT_BITS;
+    // 线程池关闭, 队列不再接受新任务, 会将队列中已有任务执行完, 执行完之后中断所有工作线程
     private static final int SHUTDOWN   =  0 << COUNT_BITS;
+    // 线程池停止, 队列不再接受新任务, 队列中的已有任务也不执行, 直接中断所有工作线程
     private static final int STOP       =  1 << COUNT_BITS;
+    // 所有工作线程停止运行: 发生在SHUTDOWN/STOP之后
     private static final int TIDYING    =  2 << COUNT_BITS;
+    // 终止: 线程池终止, 发生在TIDYING之后
     private static final int TERMINATED =  3 << COUNT_BITS;
 
     // Packing and unpacking ctl
@@ -689,6 +694,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * termination possible -- reducing worker count or removing tasks
      * from the queue during shutdown. The method is non-private to
      * allow access from ScheduledThreadPoolExecutor.
+     *
+     * 尝试切换到终止状态
      */
     final void tryTerminate() {
         for (;;) {
@@ -707,6 +714,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             try {
                 if (ctl.compareAndSet(c, ctlOf(TIDYING, 0))) {
                     try {
+                        // 空方法, 用于提供给子类重写来做特殊处理
                         terminated();
                     } finally {
                         ctl.set(ctlOf(TERMINATED, 0));
@@ -1074,6 +1082,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             }
 
             try {
+                // 从阻塞队列中获取任务
                 Runnable r = timed ?
                     workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) :
                     workQueue.take();
@@ -1175,6 +1184,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             }
             completedAbruptly = false;
         } finally {
+            // 处理线程池退出
             processWorkerExit(w, completedAbruptly);
         }
     }
