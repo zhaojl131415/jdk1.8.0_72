@@ -85,7 +85,7 @@ import java.io.InvalidObjectException;
  * @see     HashMap
  * @since   1.2
  *
- * 其实就是一个HashMap, 存入的数据直接作为key, 一个固定的空对象作为value
+ * 底层其实就是HashMap, 存的值对应HashMap的key, value为默认的PRESENT
  */
 
 public class HashSet<E>

@@ -266,7 +266,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      *
      * 在时间和空间上权衡的结果
      * 红黑树节点大小约为链表节点的2倍，在节点太少时，红黑树的查找性能优势并不明显，付出2倍空间的代价作者觉得不值得。
-     * 理想情况下，使用随机的哈希码，节点分布在 hash 桶中的频率遵循泊松分布，按照泊松分布的公式计算，链表中节点个数为8时的概率为 0.00000006（跟大乐透一等奖差不多，中大乐透？不存在的），这个概率足够低了，并且到8个节点时，红黑树的性能优势也会开始展现出来，因此8是一个较合理的数字。
+     * 理想情况下，使用随机的哈希码，节点分布在 hash 桶中的频率遵循泊松分布(见百度百科)，按照泊松分布的公式计算，链表中节点个数为8时的概率为 0.00000006（跟大乐透一等奖差不多，中大乐透？不存在的），这个概率足够低了，并且到8个节点时，红黑树的性能优势也会开始展现出来，因此8是一个较合理的数字。
      */
     static final int TREEIFY_THRESHOLD = 8;
 
@@ -906,9 +906,11 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final void treeifyBin(Node<K,V>[] tab, int hash) {
         int n, index; Node<K,V> e;
+        // 如果map为空, 或者map所有键值对的数量小于64, 扩容, 而不是转为红黑树
         if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
             resize();
         else if ((e = tab[index = (n - 1) & hash]) != null) {
+            // 转为红黑树
             TreeNode<K,V> hd = null, tl = null;
             do {
                 TreeNode<K,V> p = replacementTreeNode(e, null);
@@ -1201,6 +1203,16 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         return (e = getNode(hash(key), key)) == null ? defaultValue : e.value;
     }
 
+    /**
+     * putIfAbsent与computeIfAbsent区别:
+     * 功能结果一致, 传参不一致,
+     * putIfAbsent传值的value是一个已经生成好的确定的值, 直接就可以put到map中,
+     * 而computeIfAbsent传值为一个函数, 会在确定要用的时候, 才会执行函数来确定value的值, put到map中
+     *
+     * @param key key with which the specified value is to be associated
+     * @param value value to be associated with the specified key
+     * @return
+     */
     @Override
     public V putIfAbsent(K key, V value) {
         return putVal(hash(key), key, value, true, true);
@@ -1235,6 +1247,16 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         return null;
     }
 
+    /**
+     * putIfAbsent与computeIfAbsent区别:
+     * 功能结果一致, 传参不一致.
+     * putIfAbsent传值的value是一个已经生成好的确定的值, 直接就可以put到map中,
+     * 而computeIfAbsent传值为一个函数, 会在确定要用的时候, 才会执行函数来确定value的值, put到map中.
+     *
+     * @param key key with which the specified value is to be associated
+     * @param mappingFunction the function to compute a value
+     * @return
+     */
     @Override
     public V computeIfAbsent(K key,
                              Function<? super K, ? extends V> mappingFunction) {
@@ -2050,6 +2072,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         /**
          * Forms tree of the nodes linked from this node.
          * @return root of tree
+         * 链表转为红黑树
          */
         final void treeify(Node<K,V>[] tab) {
             TreeNode<K,V> root = null;
@@ -2096,6 +2119,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         /**
          * Returns a list of non-TreeNodes replacing those linked from
          * this node.
+         * 返回替换从此节点链接的非树节点的列表。
+         *
+         * 红黑树转为链表
          */
         final Node<K,V> untreeify(HashMap<K,V> map) {
             Node<K,V> hd = null, tl = null;

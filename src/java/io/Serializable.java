@@ -167,6 +167,7 @@ package java.io;
  * @since   JDK1.1
  *
  * 标记接口: 启用其序列化功能的接口。实现类是可序列化的, 否则将不能使它们的任意状态被序列化或逆序列化。
+ * 为了网络传输, 持久化存盘.
  */
 public interface Serializable {
 }
